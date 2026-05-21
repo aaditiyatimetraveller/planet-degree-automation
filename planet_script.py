@@ -1,5 +1,4 @@
 import swisseph as swe
-import pandas as pd
 from datetime import datetime, timedelta
 import pytz
 import json
@@ -7,16 +6,23 @@ import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# Google credentials
-creds_json=json.loads(os.environ['GOOGLE_CREDENTIALS'])
+# =====================================================
+# GOOGLE CREDENTIALS
+# =====================================================
+
+creds_json=json.loads(
+os.environ['GOOGLE_CREDENTIALS']
+)
 
 with open("creds.json","w") as f:
     json.dump(creds_json,f)
 
 scope=[
+
 'https://spreadsheets.google.com/feeds',
 'https://www.googleapis.com/auth/spreadsheets',
 'https://www.googleapis.com/auth/drive'
+
 ]
 
 creds=ServiceAccountCredentials.from_json_keyfile_name(
@@ -24,7 +30,9 @@ creds=ServiceAccountCredentials.from_json_keyfile_name(
 scope
 )
 
-client=gspread.authorize(creds)
+client=gspread.authorize(
+creds
+)
 
 sheet=client.open_by_key(
 os.environ['SHEET_ID']
@@ -32,31 +40,74 @@ os.environ['SHEET_ID']
 
 worksheet=sheet.sheet1
 
-tz=pytz.timezone('Asia/Kolkata')
 
-today=datetime.now(tz)
+# =====================================================
+# SIDEREAL LAHIRI
+# =====================================================
+
+swe.set_sid_mode(
+swe.SIDM_LAHIRI
+)
+
+
+# =====================================================
+# ===== EDIT ONLY THIS SECTION =====
+# =====================================================
+
+YEAR=2026
+MONTH=5
+DAY=21
+
+START_HOUR=9
+START_MINUTE=15
+
+END_HOUR=15
+END_MINUTE=30
+
+INTERVAL_MINUTES=5
+
+
+# EXACT KUNDLI LOCATION
+
+CITY="Mumbai,Maharashtra"
+
+LATITUDE=18.9750
+LONGITUDE=72.8258
+
+TIMEZONE='Asia/Kolkata'
+
+
+# =====================================================
+# ===== STOP EDITING BELOW =====
+# =====================================================
+
+tz=pytz.timezone(
+TIMEZONE
+)
 
 start=tz.localize(
 datetime(
-today.year,
-today.month,
-today.day,
-9,
-15
+YEAR,
+MONTH,
+DAY,
+START_HOUR,
+START_MINUTE
 )
 )
 
 end=tz.localize(
 datetime(
-today.year,
-today.month,
-today.day,
-15,
-30
+YEAR,
+MONTH,
+DAY,
+END_HOUR,
+END_MINUTE
 )
 )
 
+
 planets={
+
 "Sun":swe.SUN,
 "Moon":swe.MOON,
 "Mercury":swe.MERCURY,
@@ -67,13 +118,20 @@ planets={
 "Uranus":swe.URANUS,
 "Neptune":swe.NEPTUNE,
 "Pluto":swe.PLUTO
+
 }
 
 data=[]
 
-header=["TIME"]+list(planets.keys())
+header=["CITY","LAT","LONG","TIME"]
 
-data.append(header)
+header+=list(
+planets.keys()
+)
+
+data.append(
+header
+)
 
 current=start
 
@@ -87,16 +145,27 @@ while current<=end:
     utc.year,
     utc.month,
     utc.day,
-    utc.hour+utc.minute/60
+    utc.hour+(utc.minute/60)
     )
 
-    row=[current.strftime("%H:%M")]
+    row=[
+
+    CITY,
+    LATITUDE,
+    LONGITUDE,
+
+    current.strftime(
+    "%H:%M"
+    )
+
+    ]
 
     for name,p in planets.items():
 
         pos=swe.calc_ut(
         jd,
-        p
+        p,
+        swe.FLG_SIDEREAL
         )
 
         degree=round(
@@ -104,11 +173,17 @@ while current<=end:
         4
         )
 
-        row.append(degree)
+        row.append(
+        degree
+        )
 
-    data.append(row)
+    data.append(
+    row
+    )
 
-    current += timedelta(minutes=5)
+    current += timedelta(
+    minutes=INTERVAL_MINUTES
+    )
 
 worksheet.clear()
 
@@ -117,4 +192,6 @@ worksheet.update(
 data
 )
 
-print("Planet Data Updated")
+print(
+"Planet Data Updated Successfully"
+)
