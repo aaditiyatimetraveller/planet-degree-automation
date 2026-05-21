@@ -10,29 +10,33 @@ from oauth2client.service_account import ServiceAccountCredentials
 # GOOGLE CREDENTIALS
 # ==========================================
 
-creds_json = json.loads(os.environ['GOOGLE_CREDENTIALS'])
+creds_json=json.loads(
+os.environ['GOOGLE_CREDENTIALS']
+)
 
 with open("creds.json","w") as f:
     json.dump(creds_json,f)
 
-scope = [
+scope=[
+
 'https://spreadsheets.google.com/feeds',
 'https://www.googleapis.com/auth/spreadsheets',
 'https://www.googleapis.com/auth/drive'
+
 ]
 
-creds = ServiceAccountCredentials.from_json_keyfile_name(
+creds=ServiceAccountCredentials.from_json_keyfile_name(
 "creds.json",
 scope
 )
 
-client = gspread.authorize(creds)
+client=gspread.authorize(creds)
 
-sheet = client.open_by_key(
+sheet=client.open_by_key(
 os.environ['SHEET_ID']
 )
 
-worksheet = sheet.sheet1
+worksheet=sheet.sheet1
 
 
 # ==========================================
@@ -60,7 +64,6 @@ END_MINUTE=30
 
 INTERVAL_MINUTES=5
 
-# Kundli exact Mumbai coordinates
 LATITUDE=18.9750
 LONGITUDE=72.8258
 
@@ -102,15 +105,11 @@ planets={
 "Jupiter":swe.JUPITER,
 "Venus":swe.VENUS,
 "Saturn":swe.SATURN,
-
 "Rahu":swe.TRUE_NODE,
 "Ketu":swe.TRUE_NODE,
-
 "Uranus":swe.URANUS,
 "Neptune":swe.NEPTUNE,
-"Pluto":swe.PLUTO,
-
-"Chiron":swe.CHIRON
+"Pluto":swe.PLUTO
 
 }
 
@@ -129,8 +128,7 @@ header=[
 "Ketu",
 "Uranus",
 "Neptune",
-"Pluto",
-"Chiron"
+"Pluto"
 ]
 
 data.append(header)
