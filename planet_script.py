@@ -6,53 +6,47 @@ import os
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 
-# =====================================================
+# ==========================================
 # GOOGLE CREDENTIALS
-# =====================================================
+# ==========================================
 
-creds_json=json.loads(
-os.environ['GOOGLE_CREDENTIALS']
-)
+creds_json = json.loads(os.environ['GOOGLE_CREDENTIALS'])
 
 with open("creds.json","w") as f:
     json.dump(creds_json,f)
 
-scope=[
-
+scope = [
 'https://spreadsheets.google.com/feeds',
 'https://www.googleapis.com/auth/spreadsheets',
 'https://www.googleapis.com/auth/drive'
-
 ]
 
-creds=ServiceAccountCredentials.from_json_keyfile_name(
+creds = ServiceAccountCredentials.from_json_keyfile_name(
 "creds.json",
 scope
 )
 
-client=gspread.authorize(
-creds
-)
+client = gspread.authorize(creds)
 
-sheet=client.open_by_key(
+sheet = client.open_by_key(
 os.environ['SHEET_ID']
 )
 
-worksheet=sheet.sheet1
+worksheet = sheet.sheet1
 
 
-# =====================================================
-# SIDEREAL LAHIRI
-# =====================================================
+# ==========================================
+# KUNDLI MATCH MODE
+# ==========================================
 
 swe.set_sid_mode(
 swe.SIDM_LAHIRI
 )
 
 
-# =====================================================
+# ==========================================
 # ===== EDIT ONLY THIS SECTION =====
-# =====================================================
+# ==========================================
 
 YEAR=2026
 MONTH=5
@@ -66,24 +60,18 @@ END_MINUTE=30
 
 INTERVAL_MINUTES=5
 
-
-# EXACT KUNDLI LOCATION
-
-CITY="Mumbai,Maharashtra"
-
+# Kundli exact Mumbai coordinates
 LATITUDE=18.9750
 LONGITUDE=72.8258
 
 TIMEZONE='Asia/Kolkata'
 
-
-# =====================================================
+# ==========================================
 # ===== STOP EDITING BELOW =====
-# =====================================================
+# ==========================================
 
-tz=pytz.timezone(
-TIMEZONE
-)
+
+tz=pytz.timezone(TIMEZONE)
 
 start=tz.localize(
 datetime(
@@ -105,33 +93,47 @@ END_MINUTE
 )
 )
 
-
 planets={
 
 "Sun":swe.SUN,
 "Moon":swe.MOON,
 "Mercury":swe.MERCURY,
-"Venus":swe.VENUS,
 "Mars":swe.MARS,
 "Jupiter":swe.JUPITER,
+"Venus":swe.VENUS,
 "Saturn":swe.SATURN,
+
+"Rahu":swe.TRUE_NODE,
+"Ketu":swe.TRUE_NODE,
+
 "Uranus":swe.URANUS,
 "Neptune":swe.NEPTUNE,
-"Pluto":swe.PLUTO
+"Pluto":swe.PLUTO,
+
+"Chiron":swe.CHIRON
 
 }
 
 data=[]
 
-header=["CITY","LAT","LONG","TIME"]
+header=[
+"TIME",
+"Sun",
+"Moon",
+"Mercury",
+"Mars",
+"Jupiter",
+"Venus",
+"Saturn",
+"Rahu",
+"Ketu",
+"Uranus",
+"Neptune",
+"Pluto",
+"Chiron"
+]
 
-header+=list(
-planets.keys()
-)
-
-data.append(
-header
-)
+data.append(header)
 
 current=start
 
@@ -145,19 +147,11 @@ while current<=end:
     utc.year,
     utc.month,
     utc.day,
-    utc.hour+(utc.minute/60)
+    utc.hour + utc.minute/60
     )
 
     row=[
-
-    CITY,
-    LATITUDE,
-    LONGITUDE,
-
-    current.strftime(
-    "%H:%M"
-    )
-
+    current.strftime("%H:%M")
     ]
 
     for name,p in planets.items():
@@ -173,13 +167,14 @@ while current<=end:
         4
         )
 
+        if name=="Ketu":
+            degree=(degree+180)%360
+
         row.append(
         degree
         )
 
-    data.append(
-    row
-    )
+    data.append(row)
 
     current += timedelta(
     minutes=INTERVAL_MINUTES
@@ -192,6 +187,4 @@ worksheet.update(
 data
 )
 
-print(
-"Planet Data Updated Successfully"
-)
+print("Planet Data Updated Successfully")
